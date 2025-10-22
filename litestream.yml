@@ -1,6 +1,3 @@
-# Automatically start Uptime Kuma when Litestream begins replicating
-exec: node /app/server/server.js
-
 dbs:
   - path: /app/data/kuma.db
     replicas:
@@ -12,9 +9,8 @@ dbs:
         endpoint: '${LITESTREAM_URL}'
         region: '${LITESTREAM_REGION}'
 
-        # -------- 同步与保留策略 --------
-        snapshot-interval: 24h        # 每24小时打1次快照（控制B类交易）
-        sync-interval: 6h             # 每6小时同步一次增量（控制C类交易）
-        sync-method: snapshot         # 禁用实时同步，进一步降低API调用量
-        retention: 24h                # 保留最近24小时的快照
-        compression: zstd             # 压缩减少存储空间
+        snapshot-interval: 48h      # 改为两天打一次快照
+        sync-interval: 0h           # 禁用增量同步，避免C类交易
+        sync-method: snapshot
+        retention: 72h              # 保留三天快照
+        compression: zstd
