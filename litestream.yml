@@ -1,16 +1,24 @@
+# litestream.yml (针对 48 小时重启周期优化)
+
+exec: node /app/server/server.js
 dbs:
   - path: /app/data/kuma.db
     replicas:
       - type: s3
+        # ... (B2 账户凭证和连接信息保持不变)
         access-key-id: '${LITESTREAM_ACCESS_KEY_ID}'
         secret-access-key: '${LITESTREAM_SECRET_ACCESS_KEY}'
         bucket: '${LITESTREAM_BUCKET}'
         path: '${LITESTREAM_PATH}'
         endpoint: '${LITESTREAM_URL}'
         region: '${LITESTREAM_REGION}'
+        
+        # =================================================================
+        # 🚨 关键修改 1：将快照间隔设为 12 小时
+        # 保证重启时最多只重放 12 小时的 WAL 文件。
+        snapshot-interval: 12h 
 
-        snapshot-interval: 48h      # 改为两天打一次快照
-        sync-interval: 0h           # 禁用增量同步，避免C类交易
-        sync-method: snapshot
-        retention: 72h              # 保留三天快照
-        compression: zstd
+        # 🚨 关键修改 2：延长 WAL 文件保留时间
+        # 确保 WAL 文件数量足够支持 48 小时以上的恢复。
+        retention: 72h 
+        # =================================================================
